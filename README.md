@@ -7,7 +7,6 @@
 ### GET
 - `/` - returns a simple text message with credits
 - `/info/{}` - returns request info in format: `ip={}, method={}, endpoint={}`. Any endpoint past `/info/` is accepted and returned
-- `/summoner/{name}/{tagline}/` - returns summoner info for given name and tagline, fetched from Riot API
 
 ### POST
 - `/echo/` - returns the body of the request
