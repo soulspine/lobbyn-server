@@ -1,0 +1,2 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+response 200 "Lobbyn API v1 by soulspine"

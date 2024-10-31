@@ -14,15 +14,6 @@ segment++(){
     fi
     endpoint_segment_index=$((endpoint_segment_index + 1))
     endpoint_segment="/$(echo $endpoint | cut -d '/' -f $endpoint_segment_index)"
-    next_endpoint_segment="/$(echo $endpoint | cut -d '/' -f $((endpoint_segment_index + 1)))"
-}
-
-next_segment?(){
-    if [ $next_endpoint_segment = "/" ]; then
-        next=false
-    else
-        next=true
-    fi
 }
 
 response(){
@@ -43,7 +34,7 @@ response(){
     esac
 
     local content_length
-    content_length=$(printf "%s" "$2" | wc -c)
+    content_length=$(echo -e -n "$2" | wc -c)
 
     echo -e "HTTP/1.1 $1 $status\r\nContent-Type: application/json\r\nContent-Length: $content_length\r\n\n$2"
     exit $1
@@ -58,12 +49,17 @@ ip=$TCPREMOTEIP
 while read -r line; do
     line=$(echo "$line" | tr -d '[\r\n]')
 
+    #echo "$line" >> lobbyn.log
+
     if [[ $line =~ HTTP/.*$ ]]; then
         method=$(echo "$line" | cut -d ' ' -f 1)
         endpoint=$(echo "$line" | cut -d ' ' -f 2)
 
         # Remove multiple slashes and ensure there is one trailing slash
         endpoint=$(echo "$endpoint" | sed -E 's|/{2,}|/|g' | sed -E 's|/$||')/
+
+    elif [[ $line =~ "PROXY" ]]; then
+        ip=$(echo "$line" | cut -d ' ' -f 3)
 
     elif [[ $line =~ "Content-Length: " ]]; then
         content_length=$(echo "$line" | cut -d ' ' -f 2)
@@ -92,95 +88,23 @@ log "$logmessage"
 
 segment++ #needed to get the first segment
 
-case $endpoint_segment in
-    "/")
-    # this doesnt need to use next_segment? because it will always be false
-        case $method in
-            "GET")
-                response 200 "Lobbyn API v1 by soulspine"
-                ;;
-            *)
-                error 405 "Invalid method"
-                ;;
-        esac
-        ;;
-    "/info")
-    #this purposefully accepts any endpoint after /info
-        case $method in
-            "GET")
-                response 200 "$(jo -p ip=$ip method=$method endpoint=$endpoint)"
-                ;;
-            *)
-                error 405 "Invalid method"
-                ;;
-        esac
-        ;;
-    "/echo")
-        case $method in
-            "POST")
-                next_segment?
-                if [ $next = false ]; then
-                    response 200 "$(jo message=$body)"
-                else
-                    error 404 "Endpoint not found."
-                fi
-                ;;
-            *)
-                error 405 "Invalid method"
-                ;;
-        esac
-        ;;
-    "/summoner")
-        case $method in
-            "GET")
-                next_segment? #if segment is just /summoner - exit
-                if [ $next = false ]; then
-                    error 404 "Endpoint not found."
-                fi
+logic_path="endpoints"
 
-                segment++ #get next segment, this should be either /by-name/ or /by-puuid/
+# special case, we want to map everything starting with info there to respond with the whole endpoint
+if [ "$endpoint_segment" = "/info" ]; then
+    source "endpoints/info"
+fi
 
-                if [ $endpoint_segment = "/by-name" ]; then
-                    #echo "by-name"
-                    next_segment?
-                    if [ $next = false ]; then
-                        error 404 "Endpoint not found."
-                    fi
+while [ ! $endpoint_segment = "/" ]; do
+    logic_path="$logic_path$endpoint_segment"
+    segment++
+done
 
-                    segment++ #get next segment, this should be the summoner name
-                    summoner_name=${endpoint_segment:1}
-
-                    next_segment?
-                    if [ $next = false ]; then
-                        error 404 "Endpoint not found."
-                    fi
-
-                    segment++ #get next segment, this should be the tagline
-                    tagline=${endpoint_segment:1}
-
-                    next_segment?
-                    if [ $next = true ]; then
-                        error 404 "Endpoint not found."
-                    else
-                        riot_account_response=$(curl -s -X GET "https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/$summoner_name/$tagline?api_key=$RIOT_API_KEY")
-                        puuid=$(echo $riot_account_response | jq -r '.puuid')
-                        riot_summoner_response=$(curl -s -X GET "https://eun1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/$puuid?api_key=$RIOT_API_KEY")
-                        response 200 "$riot_summoner_response"
-                    fi
-
-                elif [ $endpoint_segment = "/by-puuid" ]; then
-                echo "by-puuid"
-                else
-                    error 404 "Endpoint not found."
-                fi
-
-                ;;
-            *)
-                error 405 "Invalid method"
-                ;;
-        esac
-        ;;
-    *)
-        error 404 "Endpoint not found."
-        ;;
-esac
+if [ ! -d "$logic_path" ]; then
+    error 404 "Endpoint not found."
+elif [ ! -f "$logic_path/$method" ]; then
+    error 405 "Invalid method."
+else
+    dos2unix "$logic_path/$method"
+    source "$logic_path/$method"
+fi
