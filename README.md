@@ -4,9 +4,13 @@
 - openssl certificate
 
 # Available endpoints
+
+### Wildcard
+- `/info/{}` - returns request info in format: `ip={}, method={}, endpoint={}, body={}`. Any endpoint past `/info/` is accepted and returned
+
 ### GET
 - `/` - returns a simple text message with credits
-- `/info/{}` - returns request info in format: `ip={}, method={}, endpoint={}`. Any endpoint past `/info/` is accepted and returned
+- `/user/` - returns user info from Riot API, requires body of the request to be in format: `{"username": "<u>", "tagline": "<t>", "region": "<r>"}`
 
 ### POST
 - `/echo/` - returns the body of the request
@@ -19,8 +23,8 @@
 
 # Config fields
 - `RIOT_API_KEY` - Key to acces Riot API, generated [here](https://developer.riotgames.com/)
-- `PORT` - Port to run the server on
+- `HTTP_PORT` - Port to run the server on natively
+- `HTTPS_PORT` - Port to run the server on with stunnel proxy
 - `BODY_READ_TIMEOUT` - Timeout for reading the body of the request, it is needed to avoid 
 
 # Known issues
-- When using `/echo/` with body being multiple backslashes, server returns invalid Content-Length header, low priority, echo is just for testing purposes

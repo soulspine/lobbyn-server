@@ -6,6 +6,7 @@ DEFAULT_HTTP_PORT=8080
 DEFAULT_HTTPS_PORT=8443
 DEFAULT_RIOT_API_KEY="YOUR_RIOT_API_KEY"
 DEFAULT_BODY_READ_TIMEOUT=1
+DEFAULT_LOBBYN_RIOT_CONTINENT="EUROPE"
 
 if [ -f config.ini ]; then
     source config.ini
@@ -14,6 +15,7 @@ else
     echo "HTTP_PORT=$DEFAULT_HTTP_PORT" >> config.ini
     echo "HTTPS_PORT=$DEFAULT_HTTPS_PORT" >> config.ini
     echo "BODY_READ_TIMEOUT=$DEFAULT_BODY_READ_TIMEOUT" >> config.ini
+    echo "LOBBYN_RIOT_CONTINENT=$DEFAULT_LOBBYN_RIOT_CONTINENT" >> config.ini
     echo "Default config file created at $(pwd)/config.ini - Update configuration values and run the script again."
     exit 1
 fi
@@ -46,4 +48,4 @@ echo "protocol = proxy" >> SSL/stunnel.conf
 
 stunnel SSL/stunnel.conf
 
-tcpserver -v -R -H 0 $HTTP_PORT ./request.sh
+tcpserver -v -R -H 0 $HTTP_PORT ./source/request.sh

@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 #this should never be run standalone, it should only be accessed by sourcing it from request.sh
 #this is also special case scenario, all endpoints past /info/ should be redirected here
 if [ -z "$body" ]; then

@@ -1,0 +1,13 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+
+username=$(echo "$body" | jq -r '.username')
+tagline=$(echo "$body" | jq -r '.tagline')
+region=$(echo "$body" | jq -r '.region')
+
+LOBBYN_RIOT_getUserByName "$username" "$tagline" "$region"
+
+if [ -z "$LOBBYN_RIOT_USER" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+else
+    response 200 "$LOBBYN_RIOT_USER"
+fi 

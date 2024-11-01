@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source source/riot.sh
+
 log(){
     echo "[$(date '+%d-%m-%Y %H:%M:%S')] $1" >> lobbyn.log
 }
@@ -21,6 +23,9 @@ response(){
     case $1 in
         200)
             status="OK"
+            ;;
+        400)
+            status="Bad Request"
             ;;
         404)
             status="Not Found"
@@ -80,7 +85,8 @@ if [ $content_length -gt 0 ]; then
 fi
 
 logmessage="IP: $ip, Method: $method, endpoint: $endpoint"
-if [ ! -z $body ]; then
+
+if [ ! -z "$body" ]; then
     logmessage="$logmessage, Body: \"$body\""
 fi
 
@@ -90,7 +96,7 @@ segment++ #needed to get the first segment
 
 logic_path="endpoints"
 
-# special case, we want to map everything starting with info there to respond with the whole endpoint
+# special case, we want to map everything starting with info to respond with the whole endpoint
 if [ "$endpoint_segment" = "/info" ]; then
     source "endpoints/info"
 fi
