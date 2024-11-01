@@ -25,6 +25,7 @@
 - `RIOT_API_KEY` - Key to acces Riot API, generated [here](https://developer.riotgames.com/)
 - `HTTP_PORT` - Port to run the server on natively
 - `HTTPS_PORT` - Port to run the server on with stunnel proxy
-- `BODY_READ_TIMEOUT` - Timeout for reading the body of the request, it is needed to avoid 
+- `BODY_READ_TIMEOUT` - Timeout for reading the body of the request, it is needed to avoid
+- `LOBBYN_RIOT_CONTINENT` - Routing value to use for the Riot API, available options are: `americas`, `asia`, `europe`
 
 # Known issues
