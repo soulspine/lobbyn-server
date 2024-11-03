@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-trap 'killall stunnel' EXIT
+trap 'killall stunnel; rm -rf tmp' EXIT
 
 DEFAULT_HTTP_PORT=8080
 DEFAULT_HTTPS_PORT=8443
 DEFAULT_RIOT_API_KEY="YOUR_RIOT_API_KEY"
 DEFAULT_BODY_READ_TIMEOUT=1
 DEFAULT_LOBBYN_RIOT_CONTINENT="EUROPE"
+DEFAULT_USER_CREATION_TIMEOUT=180
 
 if [ -f config.ini ]; then
     source config.ini
@@ -16,6 +17,7 @@ else
     echo "HTTPS_PORT=$DEFAULT_HTTPS_PORT" >> config.ini
     echo "BODY_READ_TIMEOUT=$DEFAULT_BODY_READ_TIMEOUT" >> config.ini
     echo "LOBBYN_RIOT_CONTINENT=$DEFAULT_LOBBYN_RIOT_CONTINENT" >> config.ini
+    echo "USER_CREATION_TIMEOUT=$DEFAULT_USER_CREATION_TIMEOUT" >> config.ini
     echo "Default config file created at $(pwd)/config.ini - Update configuration values and run the script again."
     exit 1
 fi
@@ -35,7 +37,8 @@ if [ ! -d SSL ]; then
     exit 3
 fi
 
-killall stunnel
+rm -rf tmp
+mkdir -p tmp/user
 
 rm -f SSL/stunnel.conf
 touch SSL/stunnel.conf

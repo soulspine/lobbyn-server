@@ -10,10 +10,18 @@
 
 ### GET
 - `/` - returns a simple text message with credits
-- `/user/` - returns user info from Riot API, requires body of the request to be in format: `{"username": "<u>", "tagline": "<t>", "region": "<r>"}`
 
 ### POST
 - `/echo/` - returns the body of the request
+- `/user/` - initial request to create a user, returns a token, requires a body with `username`, `tagline` and `region`
+- `/user/verify` - request to create a user, returns `userId`, requires a body with `token` and `password`
+
+# User creation
+- Send a POST request to `/user/` with a body containing `username`, `tagline` and `region`
+- The server will return a `token` and `iconId`
+- Change the icon of the account to the one provided in the response
+- Send a POST request to `/user/verify` with the `token` received in the first request and `password`
+
 
 # Exit codes:
 - 0: Success
@@ -27,5 +35,6 @@
 - `HTTPS_PORT` - Port to run the server on with stunnel proxy
 - `BODY_READ_TIMEOUT` - Timeout for reading the body of the request, it is needed to avoid
 - `LOBBYN_RIOT_CONTINENT` - Routing value to use for the Riot API, available options are: `americas`, `asia`, `europe`
+- `USER_CREATION_TIMEOUT` - How long token is valid for user creation
 
 # Known issues

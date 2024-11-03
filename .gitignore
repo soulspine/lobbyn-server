@@ -2,3 +2,5 @@ lobbyn.log
 config.ini
 SSL/
 database/
+tmp/
+test.sh

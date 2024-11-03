@@ -1,0 +1,48 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+
+username=$(echo "$body" | jq -r '.username')
+tagline=$(echo "$body" | jq -r '.tagline')
+region=$(echo "$body" | jq -r '.region')
+
+LOBBYN_RIOT_getUserByName "$username" "$tagline" "$region"
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error $LOBBYN_ERROR_CODE "$LOBBYN_ERROR_MESSAGE"
+fi
+
+puuid=$(echo "$LOBBYN_RIOT_USER" | jq -r '.puuid')
+current_user_icon=$(echo "$LOBBYN_RIOT_USER" | jq -r '.profileIconId')
+
+if [ -d "database/users/$puuid" ]; then
+    error 409 "User already exists."
+fi
+
+for file in tmp/user/*; do
+    if [ ! -f "$file" ]; then
+        continue
+    fi
+    temp_puuid=$(cat "$file" | jq -r '.puuid')
+    temp_valid_until=$(cat "$file" | jq -r '.validUntil')
+
+    if [ "$temp_valid_until" -lt "$(date +%s)" ]; then
+        rm "$file"
+        continue
+    fi
+
+    if [ "$puuid" = "$temp_puuid" ]; then
+        error 409 "User creation request already exists. Respond to the existing request or wait for it to expire."
+    fi
+done
+
+target_icon="$current_user_icon"
+
+while [ "$target_icon" = "$current_user_icon" ]; do
+    target_icon=$(shuf -i 0-28 -n 1)
+done
+
+token=$(uuidgen | tr -d '-')
+valid_until=$(($(date +%s) + $USER_CREATION_TIMEOUT))
+
+jo -p iconId="$target_icon" token="$token" puuid="$puuid" region="$region" validUntil="$valid_until" > "tmp/user/$token.json"
+
+response 202 "$(jo message="User creation request created." iconId=$target_icon token=$token)"

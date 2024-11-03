@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 
+#LOBBTN_RIOT_USER - the user object from the riot api
+#LOBBYN_ERROR_MESSAGE - error message
+#LOBBYN_ERROR_CODE - error code
+
 source source/riot.sh
+source source/user.sh
+
+ARGON2_ITERATIONS=20
+ARGON2_MEMORY=4096
+ARGON2_PARALLELISM=4
+ARGON2_LENGTH=32
 
 log(){
     echo "[$(date '+%d-%m-%Y %H:%M:%S')] $1" >> lobbyn.log
@@ -21,17 +31,146 @@ segment++(){
 response(){
     local status
     case $1 in
+        100)
+            status="Continue"
+            ;;
+        101)
+            status="Switching Protocols"
+            ;;
+        102)
+            status="Processing"
+            ;;
+        103)
+            status="Early Hints"
+            ;;
         200)
             status="OK"
             ;;
+        201)
+            status="Created"
+            ;;
+        202)
+            status="Accepted"
+            ;;
+        203)
+            status="Non-Authoritative Information"
+            ;;
+        204)
+            status="No Content"
+            ;;
+        205)
+            status="Reset Content"
+            ;;
+        206)
+            status="Partial Content"
+            ;;
+        207)
+            status="Multi-Status"
+            ;;
+        208)
+            status="Already Reported"
+            ;;
+        226)
+            status="IM Used"
+            ;;
+        300)
+            status="Multiple Choices"
+            ;;
+        301)
+            status="Moved Permanently"
+            ;;
+        302)
+            status="Found"
+            ;;
+        303)
+            status="See Other"
+            ;;
+        304)
+            status="Not Modified"
+            ;;
+        305)
+            status="Use Proxy"
+            ;;
+        307)
+            status="Temporary Redirect"
+            ;;
+        308)
+            status="Permanent Redirect"
+            ;;
         400)
             status="Bad Request"
+            ;;
+        401)
+            status="Unauthorized"
+            ;;
+        402)
+            status="Payment Required"
+            ;;
+        403)
+            status="Forbidden"
             ;;
         404)
             status="Not Found"
             ;;
         405)
             status="Method Not Allowed"
+            ;;
+        406)
+            status="Not Acceptable"
+            ;;
+        407)
+            status="Proxy Authentication Required"
+            ;;
+        408)
+            status="Request Timeout"
+            ;;
+        409)
+            status="Conflict"
+            ;;
+        410)
+            status="Gone"
+            ;;
+        411)
+            status="Length Required"
+            ;;
+        412)
+            status="Precondition Failed"
+            ;;
+        413)
+            status="Payload Too Large"
+            ;;
+        414)
+            status="URI Too Long"
+            ;;
+        415)
+            status="Unsupported Media Type"
+            ;;
+        416)
+            status="Range Not Satisfiable"
+            ;;
+        417)
+            status="Expectation Failed"
+            ;;
+        426)
+            status="Upgrade Required"
+            ;;
+        500)
+            status="Internal Server Error"
+            ;;
+        501)
+            status="Not Implemented"
+            ;;
+        502)
+            status="Bad Gateway"
+            ;;
+        503)
+            status="Service Unavailable"
+            ;;
+        504)
+            status="Gateway Timeout"
+            ;;
+        505)
+            status="HTTP Version Not Supported"
             ;;
         *)
             status="Internal Server Error"

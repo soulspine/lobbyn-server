@@ -28,3 +28,19 @@ LOBBYN_RIOT_getUserByName(){
 
     LOBBYN_RIOT_USER="$summoner_request"
 }
+
+LOBBYN_RIOT_getUserByPuuid(){
+    local puuid=$(echo "$1" | tr -d '\n' | jq -sRr @uri)
+    local region=$(echo "$2" | tr -d '\n' | jq -sRr @uri)
+
+    local summoner_request=$(curl -s -X GET "https://$region.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/$puuid" -H "X-Riot-Token: $RIOT_API_KEY")
+
+    if [ -z "$summoner_request" ]; then
+        LOBBYN_RIOT_USER=""
+        LOBBYN_ERROR_CODE="400"
+        LOBBYN_ERROR_MESSAGE="Invalid puuid"
+        return 400
+    fi
+
+    LOBBYN_RIOT_USER="$summoner_request"
+}

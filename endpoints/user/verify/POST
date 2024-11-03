@@ -1,0 +1,44 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+
+token=$(echo "$body" | jq -r '.token')
+password=$(echo "$body" | jq -r '.password')
+
+if [ -z $token ] || [ ${#token} -ne 32 ]; then
+    error 400 "Invalid token."
+elif [ -z $password ] || [ ${#password} -lt 6 ]; then
+    error 400 "Password must be at least 6 characters long."
+fi
+
+for file in tmp/user/*; do
+    if [ ! -f "$file" ]; then
+        continue
+    fi
+
+    if [ $(cat "$file" | jq -r '.token') == "$token" ]; then
+        target_icon_id=$(cat $file | jq -r '.iconId')
+        puuid=$(cat $file | jq -r '.puuid')
+        region=$(cat $file | jq -r '.region')
+        LOBBYN_RIOT_getUserByPuuid $puuid $region
+
+        if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+            error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+        fi
+
+        icon_id=$(echo "$LOBBYN_RIOT_USER" | jq -r '.profileIconId')
+
+        if [ "$icon_id" -eq "$target_icon_id" ]; then
+            userId=$(uuidgen)
+            response_message="$(jo message="User successfully created." userId=$userId)"
+
+            rm -f $file
+
+            LOBBYN_USER_createUser $userId $password
+            LOBBYN_USER_linkPuuid $userId $puuid $region
+
+            response 201 "$response_message"
+        fi
+    fi
+done
+done
+
+error 404 "Token not found."
