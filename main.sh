@@ -2,22 +2,23 @@
 
 trap 'killall stunnel; rm -rf tmp' EXIT
 
-DEFAULT_HTTP_PORT=8080
-DEFAULT_HTTPS_PORT=8443
-DEFAULT_RIOT_API_KEY="YOUR_RIOT_API_KEY"
-DEFAULT_BODY_READ_TIMEOUT=1
-DEFAULT_LOBBYN_RIOT_CONTINENT="EUROPE"
-DEFAULT_USER_CREATION_TIMEOUT=180
+#CONFIG DEFAULTS
+defaults=(
+    "HTTP_PORT=8080"
+    "HTTPS_PORT=8443"
+    "RIOT_API_KEY=YOUR_RIOT_API_KEY"
+    "RIOT_CONTINENT=EUROPE"
+    "TOKEN_LENGTH=32"
+    "BODY_READ_TIMEOUT=1"
+    "USER_CREATION_TIMEOUT=180"
+)
 
 if [ -f config.ini ]; then
     source config.ini
 else
-    echo "RIOT_API_KEY=\"$DEFAULT_RIOT_API_KEY\"" >> config.ini
-    echo "HTTP_PORT=$DEFAULT_HTTP_PORT" >> config.ini
-    echo "HTTPS_PORT=$DEFAULT_HTTPS_PORT" >> config.ini
-    echo "BODY_READ_TIMEOUT=$DEFAULT_BODY_READ_TIMEOUT" >> config.ini
-    echo "LOBBYN_RIOT_CONTINENT=$DEFAULT_LOBBYN_RIOT_CONTINENT" >> config.ini
-    echo "USER_CREATION_TIMEOUT=$DEFAULT_USER_CREATION_TIMEOUT" >> config.ini
+    for entry in "${defaults[@]}"; do
+        echo "$entry" >> config.ini
+    done
     echo "Default config file created at $(pwd)/config.ini - Update configuration values and run the script again."
     exit 1
 fi
@@ -38,7 +39,7 @@ if [ ! -d SSL ]; then
 fi
 
 rm -rf tmp
-mkdir -p tmp/user
+mkdir -p tmp
 
 rm -f SSL/stunnel.conf
 touch SSL/stunnel.conf

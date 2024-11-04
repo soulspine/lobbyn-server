@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
+#LOBBYN_TOKEN - token
 #LOBBTN_RIOT_USER - the user object from the riot api
 #LOBBYN_ERROR_MESSAGE - error message
 #LOBBYN_ERROR_CODE - error code
 
 source source/riot.sh
 source source/user.sh
+source source/token.sh
+source source/clear.sh
 
 ARGON2_ITERATIONS=20
 ARGON2_MEMORY=4096
@@ -207,6 +210,9 @@ while read -r line; do
 
     elif [[ $line =~ "Content-Length: " ]]; then
         content_length=$(echo "$line" | cut -d ' ' -f 2)
+
+    elif [[ $line =~ "LOBBYN-Token: " ]]; then
+        access_token=$(echo "$line" | cut -d ' ' -f 2)
 
     elif [ "x$line" = "x" ]; then
         break

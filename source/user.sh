@@ -21,6 +21,12 @@ LOBBYN_USER_linkPuuid(){
         return $LOBBYN_ERROR_CODE
     fi
 
+    if [ ! -d "database/users/$userId" ]; then
+        LOBBYN_ERROR_CODE=404
+        LOBBYN_ERROR_MESSAGE="User not found."
+        return $LOBBYN_ERROR_CODE
+    fi
+
     echo "$puuid" >> database/users/$userId/riot_accounts
     echo "$(jo -p owner=$userId region=$region)" > database/riot_accounts/$puuid
 }
@@ -45,6 +51,32 @@ LOBBYN_USER_verifyPassword(){
     if [ "$hash" = "$(cat database/users/$puuid/password)" ]; then
         return 0
     else
-        return 1
+        LOBBYN_ERROR_CODE=401
+        LOBBYN_ERROR_MESSAGE="Invalid password."
+        return $LOBBYN_ERROR_CODE
     fi
+}
+
+LOBBYN_USER_getIdByPuuid(){
+    local puuid="$1"
+
+    if [ ! -f "database/riot_accounts/$puuid" ]; then
+        LOBBYN_ERROR_CODE=404
+        LOBBYN_ERROR_MESSAGE="PUUID not found"
+        return $LOBBYN_ERROR_CODE
+    fi
+
+    LOBBYN_USER_ID=$(cat "database/riot_accounts/$puuid" | jq -r '.owner')
+}
+
+LOBBYN_USER_getRiotAccountsPuuidById(){
+    local userId="$1"
+
+    if [ ! -f "database/users/$userId/riot_accounts" ]; then
+        LOBBYN_ERROR_CODE=404
+        LOBBYN_ERROR_MESSAGE="User not found."
+        return $LOBBYN_ERROR_CODE
+    fi
+
+    mapfile -t LOBBYN_USER_RIOT_ACCOUNTS_PUUIDS < "database/users/$userId/riot_accounts"
 }

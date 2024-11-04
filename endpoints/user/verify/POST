@@ -3,42 +3,43 @@
 token=$(echo "$body" | jq -r '.token')
 password=$(echo "$body" | jq -r '.password')
 
-if [ -z $token ] || [ ${#token} -ne 32 ]; then
+if [ -z $token ] || [ ${#token} -ne $TOKEN_LENGTH ]; then
     error 400 "Invalid token."
 elif [ -z $password ] || [ ${#password} -lt 6 ]; then
     error 400 "Password must be at least 6 characters long."
 fi
 
-for file in tmp/user/*; do
-    if [ ! -f "$file" ]; then
-        continue
-    fi
+LOBBYN_CLEAR_ERROR
+LOBBYN_TOKEN_get $token
 
-    if [ $(cat "$file" | jq -r '.token') == "$token" ]; then
-        target_icon_id=$(cat $file | jq -r '.iconId')
-        puuid=$(cat $file | jq -r '.puuid')
-        region=$(cat $file | jq -r '.region')
-        LOBBYN_RIOT_getUserByPuuid $puuid $region
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
 
-        if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
-            error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
-        fi
+target_icon_id=$(echo $LOBBYN_TOKEN_DATA | jq -r '.iconId')
+puuid=$(echo  $LOBBYN_TOKEN_DATA | jq -r '.puuid')
+region=$(echo  $LOBBYN_TOKEN_DATA | jq -r '.region')
 
-        icon_id=$(echo "$LOBBYN_RIOT_USER" | jq -r '.profileIconId')
+LOBBYN_CLEAR_ERROR
+LOBBYN_RIOT_getUserByPuuid $puuid $region
 
-        if [ "$icon_id" -eq "$target_icon_id" ]; then
-            userId=$(uuidgen)
-            response_message="$(jo message="User successfully created." userId=$userId)"
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
 
-            rm -f $file
+icon_id=$(echo "$LOBBYN_RIOT_USER" | jq -r '.profileIconId')
 
-            LOBBYN_USER_createUser $userId $password
-            LOBBYN_USER_linkPuuid $userId $puuid $region
+if [ "$icon_id" -eq "$target_icon_id" ]; then
+    userId=$(uuidgen)
+    response_message="$(jo message="User successfully created." userId=$userId)"
 
-            response 201 "$response_message"
-        fi
-    fi
-done
-done
+    LOBBYN_TOKEN_close $LOBBYN_TOKEN
 
-error 404 "Token not found."
+    LOBBYN_CLEAR_ERROR
+    LOBBYN_USER_createUser $userId $password
+    LOBBYN_USER_linkPuuid $userId $puuid $region
+
+    response 201 "$response_message"
+else
+    error 400 "Icon mismatch."
+fi
