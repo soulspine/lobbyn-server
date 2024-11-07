@@ -1,0 +1,34 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+import login user clear
+
+puuid=$(echo "$body" | jq -r '.puuid')
+userId=$(echo "$body" | jq -r '.userId')
+
+if [ -z "$puuid" ] && [ -z "$userId" ]; then
+    error 400 "Missing puuid or userId."
+fi
+
+if [ ! -z "$puuid" ] && [ ! -z "$userId" ]; then
+    error 400 "Both puuid and userId are provided."
+fi
+
+LOBBYN_CLEAR_ERROR
+if [ ! "$puuid" = "null" ]; then
+    LOBBYN_USER_getIdByPuuid "$puuid"
+    userId=$LOBBYN_USER_ID
+else
+    LOBBYN_USER_checkId "$userId"
+fi
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error $LOBBYN_ERROR_CODE "$LOBBYN_ERROR_MESSAGE"
+fi
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_LOGIN_initial $userId
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error $LOBBYN_ERROR_CODE "$LOBBYN_ERROR_MESSAGE"
+fi
+
+response 200 "$(jo message="Login request created" token=$LOBBYN_LOGIN_TOKEN salt=$LOBBYN_LOGIN_SALT)"

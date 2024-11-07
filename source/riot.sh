@@ -1,6 +1,6 @@
 #this should never be run standalone, it should only be accessed by sourcing it from request.sh
 
-LOBBYN_RIOT_getUserByName(){
+LOBBYN_RIOT_getUserByName(){ #username, tagline, region - can throw error
     local username=$(echo "$1" | tr -d '\n' | jq -sRr @uri)
     local tagline=$(echo "$2" | tr -d '\n' | jq -sRr @uri)
     local region=$(echo "$3" | tr -d '\n' | jq -sRr @uri)
@@ -45,7 +45,7 @@ LOBBYN_RIOT_getUserByName(){
     LOBBYN_RIOT_USER="$summoner_request"
 }
 
-LOBBYN_RIOT_getUserByPuuid(){
+LOBBYN_RIOT_getUserByPuuid(){ #puuid, region - can throw error
     local puuid=$(echo "$1" | tr -d '\n' | jq -sRr @uri)
     local region=$(echo "$2" | tr -d '\n' | jq -sRr @uri)
 

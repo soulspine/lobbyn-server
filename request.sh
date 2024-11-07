@@ -5,15 +5,24 @@
 #LOBBYN_ERROR_MESSAGE - error message
 #LOBBYN_ERROR_CODE - error code
 
-source source/riot.sh
-source source/user.sh
-source source/token.sh
-source source/clear.sh
-
 ARGON2_ITERATIONS=20
 ARGON2_MEMORY=4096
 ARGON2_PARALLELISM=4
 ARGON2_LENGTH=32
+
+import(){
+    for script in "$@"; do
+        var_name="LOBBYN_SOURCE_${script^^}"
+        if [ -z "${!var_name}" ]; then
+            if [ -f "source/$script.sh" ]; then
+                source "source/$script.sh"
+                declare -g "$var_name=true"
+            else
+                error 500 "Internal Server Error. Missing source file: $script.sh. Please contact the administrator."
+            fi
+        fi
+    done
+}
 
 log(){
     echo "[$(date '+%d-%m-%Y %H:%M:%S')] $1" >> lobbyn.log
@@ -180,10 +189,14 @@ response(){
             ;;
     esac
 
-    local content_length
-    content_length=$(echo -e -n "$2" | wc -c)
+    local content_length=$(echo -e -n "$2" | wc -c)
+    local header="HTTP/1.1 $1 $status\r\nContent-Type: application/json\r\nContent-Length: $content_length\r\n\n"
 
-    echo -e "HTTP/1.1 $1 $status\r\nContent-Type: application/json\r\nContent-Length: $content_length\r\n\n$2"
+    if [ ! -z "$access_token" ]; then
+        header="$header""LOBBYN-Token: $access_token\r\n"
+    fi
+
+    echo -e "$header$2"
     exit $1
 }
 

@@ -11,6 +11,7 @@ defaults=(
     "TOKEN_LENGTH=32"
     "BODY_READ_TIMEOUT=1"
     "USER_CREATION_TIMEOUT=180"
+    "LOGIN_REQUEST_TIMEOUT=10"
 )
 
 if [ -f config.ini ]; then
@@ -52,4 +53,4 @@ echo "protocol = proxy" >> SSL/stunnel.conf
 
 stunnel SSL/stunnel.conf
 
-tcpserver -v -R -H 0 $HTTP_PORT ./source/request.sh
+tcpserver -v -R -H 0 $HTTP_PORT ./request.sh

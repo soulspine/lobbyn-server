@@ -1,4 +1,5 @@
 #this should never be run standalone, it should only be accessed by sourcing it from request.sh
+import clear riot token user
 
 token=$(echo "$body" | jq -r '.token')
 password=$(echo "$body" | jq -r '.password')
