@@ -17,6 +17,10 @@ if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
     error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
 fi
 
+if [ ! "$LOBBYN_TOKEN_TYPE" = "userRegistration" ]; then
+    error 400 "Invalid token."
+fi
+
 target_icon_id=$(echo $LOBBYN_TOKEN_DATA | jq -r '.iconId')
 puuid=$(echo  $LOBBYN_TOKEN_DATA | jq -r '.puuid')
 region=$(echo  $LOBBYN_TOKEN_DATA | jq -r '.region')

@@ -1,0 +1,32 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+import clear token
+
+received_hash=$(echo "$body" | jq -r '.hash // empty')
+token=$(echo "$body" | jq -r '.token // empty')
+
+if [ -z "$received_hash" ] || [ -z "$token" ]; then
+    error 400 "Missing required fields."
+fi
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_TOKEN_get "$token"
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error $LOBBYN_ERROR_CODE "$LOBBYN_ERROR_MESSAGE"
+fi
+
+if [ ! "$LOBBYN_TOKEN_TYPE" = "loginRequest" ]; then
+    error 400 "Invalid token."
+fi
+
+hash="$(echo "$LOBBYN_TOKEN_DATA" | jq -r '.hash // empty')"
+userId="$(echo "$LOBBYN_TOKEN_DATA" | jq -r '.userId // empty')"
+LOBBYN_TOKEN_close "$token"
+
+if [ ! "$received_hash" = "$hash" ]; then
+    error 400 "Login attempt failed."
+fi
+
+LOBBYN_TOKEN_generate "$(jo -p userId="$userId")" $LOGIN_SESSION_TIMEOUT "access"
+
+response 200 "$(jo token="$LOBBYN_TOKEN")"

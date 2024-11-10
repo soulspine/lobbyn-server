@@ -36,6 +36,6 @@ while [ "$target_icon" = "$current_user_icon" ]; do
 done
 
 LOBBYN_CLEAR_ERROR
-LOBBYN_TOKEN_generate "$(jo -p iconId=$target_icon puuid=$puuid region=$region)" $USER_CREATION_TIMEOUT
+LOBBYN_TOKEN_generate "$(jo -p iconId=$target_icon puuid=$puuid region=$region)" $USER_CREATION_TIMEOUT "userRegistration"
 
 response 202 "$(jo message="User creation request created." iconId=$target_icon token=$LOBBYN_TOKEN validUntil=$LOBBYN_TOKEN_EXPIRATION)"

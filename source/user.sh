@@ -45,18 +45,6 @@ LOBBYN_USER_unlinkPuuid(){ #userId, puuid - can throw error
     rm -f "database/riot_accounts/$puuid"
 }
 
-LOBBYN_USER_verifyPassword(){ #hash - can throw error
-    local hash=$1
-
-    if [ "$hash" = "$(cat database/users/$puuid/password)" ]; then
-        return 0
-    else
-        LOBBYN_ERROR_CODE=401
-        LOBBYN_ERROR_MESSAGE="Invalid password."
-        return $LOBBYN_ERROR_CODE
-    fi
-}
-
 LOBBYN_USER_checkId(){ #userId - can throw error
     local userId="$1"
 
@@ -103,7 +91,6 @@ LOBBYN_USER_checkIfPuuidInVerificationProcess(){ #puuid - can throw error
         local expiration=$(cat $token | jq -r '.expiration')
 
         if [ "$expiration" -lt $(date +%s) ]; then
-            rm -f $token
             continue
         fi
 
@@ -129,7 +116,6 @@ LOBBYN_USER_checkIfUserIdInLoginProcess(){ #userId - can throw error
         local expiration=$(cat $token | jq -r '.expiration')
 
         if [ "$expiration" -lt $(date +%s) ]; then
-            rm -f $token
             continue
         fi
 

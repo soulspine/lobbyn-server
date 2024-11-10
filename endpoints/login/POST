@@ -1,8 +1,8 @@
 #this should never be run standalone, it should only be accessed by sourcing it from request.sh
-import login user clear
+import user clear token
 
-puuid=$(echo "$body" | jq -r '.puuid')
-userId=$(echo "$body" | jq -r '.userId')
+puuid=$(echo "$body" | jq -r '.puuid // empty')
+userId=$(echo "$body" | jq -r '.userId // empty')
 
 if [ -z "$puuid" ] && [ -z "$userId" ]; then
     error 400 "Missing puuid or userId."
@@ -13,7 +13,7 @@ if [ ! -z "$puuid" ] && [ ! -z "$userId" ]; then
 fi
 
 LOBBYN_CLEAR_ERROR
-if [ ! "$puuid" = "null" ]; then
+if [ ! -z "$puuid" ]; then
     LOBBYN_USER_getIdByPuuid "$puuid"
     userId=$LOBBYN_USER_ID
 else
@@ -25,10 +25,16 @@ if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
 fi
 
 LOBBYN_CLEAR_ERROR
-LOBBYN_LOGIN_initial $userId
+LOBBYN_USER_checkIfUserIdInLoginProcess $userId
 
 if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
-    error $LOBBYN_ERROR_CODE "$LOBBYN_ERROR_MESSAGE"
+return $LOBBYN_ERROR_CODE
 fi
+salt=$(cat /dev/urandom | tr -dc 'A-Za-z0-9' | head -c $TOKEN_LENGTH)
+default_hash=$(cat database/users/$userId/password)
 
-response 200 "$(jo message="Login request created" token=$LOBBYN_LOGIN_TOKEN salt=$LOBBYN_LOGIN_SALT)"
+hash=$(echo -n "$default_hash" | argon2 "$salt" -e -l $ARGON2_LENGTH -t $ARGON2_ITERATIONS -k $ARGON2_MEMORY -p $ARGON2_PARALLELISM)
+
+LOBBYN_TOKEN_generate "$(jo -p userId=$userId hash=$hash)" "$LOGIN_REQUEST_TIMEOUT" "loginRequest"
+
+response 200 "$(jo message="Login request created" token=$LOBBYN_TOKEN salt=$salt)"

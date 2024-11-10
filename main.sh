@@ -2,6 +2,20 @@
 
 trap 'killall stunnel; rm -rf tmp' EXIT
 
+cleanup_tmp_files() {
+    while true; do
+        for file in tmp/*; do
+            if [ -f "$file" ]; then
+                expiration=$(jq -r '.expiration' "$file")
+                if [ $(jq -r '.expiration' "$file") -lt "$(date +%s)" ]; then
+                    rm -f "$file"
+                fi
+            fi
+        done
+        sleep $CLEANUP_INTERVAL
+    done
+}
+
 #CONFIG DEFAULTS
 defaults=(
     "HTTP_PORT=8080"
@@ -9,9 +23,15 @@ defaults=(
     "RIOT_API_KEY=YOUR_RIOT_API_KEY"
     "RIOT_CONTINENT=EUROPE"
     "TOKEN_LENGTH=32"
+    "ARGON2_ITERATIONS=20"
+    "ARGON2_MEMORY=4096"
+    "ARGON2_PARALLELISM=4"
+    "ARGON2_LENGTH=32"
     "BODY_READ_TIMEOUT=1"
     "USER_CREATION_TIMEOUT=180"
     "LOGIN_REQUEST_TIMEOUT=10"
+    "ACCESS_SESSION_TIMEOUT=900"
+    "CLEANUP_INTERVAL=60"
 )
 
 if [ -f config.ini ]; then
@@ -53,4 +73,5 @@ echo "protocol = proxy" >> SSL/stunnel.conf
 
 stunnel SSL/stunnel.conf
 
+cleanup_tmp_files &
 tcpserver -v -R -H 0 $HTTP_PORT ./request.sh

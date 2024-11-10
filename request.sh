@@ -5,11 +5,6 @@
 #LOBBYN_ERROR_MESSAGE - error message
 #LOBBYN_ERROR_CODE - error code
 
-ARGON2_ITERATIONS=20
-ARGON2_MEMORY=4096
-ARGON2_PARALLELISM=4
-ARGON2_LENGTH=32
-
 import(){
     for script in "$@"; do
         var_name="LOBBYN_SOURCE_${script^^}"
@@ -29,7 +24,7 @@ log(){
 }
 
 error(){
-    response $1 "$(jo error="$2")"
+    response "$1" "$(jo error="$2")"
 }
 
 segment++(){
@@ -42,7 +37,8 @@ segment++(){
 
 response(){
     local status
-    case $1 in
+    local code="$1"
+    case $code in
         100)
             status="Continue"
             ;;
@@ -166,9 +162,6 @@ response(){
         426)
             status="Upgrade Required"
             ;;
-        500)
-            status="Internal Server Error"
-            ;;
         501)
             status="Not Implemented"
             ;;
@@ -185,19 +178,22 @@ response(){
             status="HTTP Version Not Supported"
             ;;
         *)
+            code=500
             status="Internal Server Error"
             ;;
     esac
 
     local content_length=$(echo -e -n "$2" | wc -c)
-    local header="HTTP/1.1 $1 $status\r\nContent-Type: application/json\r\nContent-Length: $content_length\r\n\n"
+    local header="HTTP/1.1 $code $status\r\nContent-Type: application/json\r\nContent-Length: $content_length"
 
     if [ ! -z "$access_token" ]; then
-        header="$header""LOBBYN-Token: $access_token\r\n"
+        local header="$header\r\nLOBBYN-Token: $access_token\r\n"
     fi
 
+    local header="$header\r\n\r\n"
+
     echo -e "$header$2"
-    exit $1
+    exit "$code"
 }
 
 source config.ini
