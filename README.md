@@ -30,7 +30,7 @@
 - Generate a hash of the password with the salt provided
 - Send a POST request to `/user/login/verify` with the `token` received in the first request and the `hash` of the password
 
-If the login is successful, the server will return a new `token` and `salt` to be used for the next request. Access token has to be included in `LOBBYN-Token` header.
+If the login is successful, the server will return a new access `token` used for verification in future requests. Access token has to be included in `LOBBYN-Token` header.
 
 # Exit codes:
 - 0: Success
