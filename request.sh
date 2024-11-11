@@ -13,7 +13,7 @@ import(){
                 source "source/$script.sh"
                 declare -g "$var_name=true"
             else
-                error 500 "Internal Server Error. Missing source file: $script.sh. Please contact the administrator."
+                error 500 "Missing source file: $script.sh. Please contact the administrator."
             fi
         fi
     done
@@ -186,8 +186,14 @@ response(){
     local content_length=$(echo -e -n "$2" | wc -c)
     local header="HTTP/1.1 $code $status\r\nContent-Type: application/json\r\nContent-Length: $content_length"
 
-    if [ ! -z "$access_token" ]; then
-        local header="$header\r\nLOBBYN-Token: $access_token\r\n"
+    LOBBYN_CLEAR_ERROR
+    LOBBYN_TOKEN_get "$access_token"
+
+    if [ -z "$LOBBYN_ERROR_CODE" ]; then
+        LOBBYN_TOKEN_extend "$access_token" "$ACCESS_SESSION_TIMEOUT"
+        local session_start="$(echo "$LOBBYN_TOKEN_DATA" | jq -r '.start')"
+        local session_duration="$(($(date +%s) - $session_start))"
+        local header="$header\r\nLOBBYN-Token-Expiration: $LOBBYN_TOKEN_EXPIRATION\r\nLOBBYN-Session-Duration: $session_duration"
     fi
 
     local header="$header\r\n\r\n"
@@ -195,6 +201,8 @@ response(){
     echo -e "$header$2"
     exit "$code"
 }
+
+import clear riot token user
 
 source config.ini
 

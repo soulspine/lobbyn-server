@@ -11,7 +11,7 @@ LOBBYN_TOKEN_generate(){ #data, expiration, type
     LOBBYN_TOKEN_EXPIRATION=$(($(date +%s) + $2))
     LOBBYN_TOKEN_TYPE="$3"
 
-    jo -p expiration="$LOBBYN_TOKEN_EXPIRATION" type="$LOBBYN_TOKEN_TYPE" data="$LOBBYN_TOKEN_DATA" > "tmp/$LOBBYN_TOKEN"
+    jo -p expiration=$LOBBYN_TOKEN_EXPIRATION type="$LOBBYN_TOKEN_TYPE" data="$LOBBYN_TOKEN_DATA" > "tmp/$LOBBYN_TOKEN"
 }
 
 LOBBYN_TOKEN_get(){ #token - can throw error
@@ -38,7 +38,7 @@ LOBBYN_TOKEN_get(){ #token - can throw error
 
 LOBBYN_TOKEN_extend(){ #token, expiration
     local token="$1"
-    local expiration="$2"
+    local expiration=$2
 
     LOBBYN_CLEAR_ERROR
     LOBBYN_TOKEN_get "$token"
@@ -48,7 +48,7 @@ LOBBYN_TOKEN_extend(){ #token, expiration
     fi
 
     LOBBYN_TOKEN_EXPIRATION=$(($(date +%s) + $expiration))
-    jq --arg expiration "$LOBBYN_TOKEN_EXPIRATION" '.expiration = $expiration' "tmp/$LOBBYN_TOKEN" > "tmp/$LOBBYN_TOKEN.tmp"&& mv "tmp/$LOBBYN_TOKEN.tmp" "tmp/$LOBBYN_TOKEN"
+    jq --argjson expiration $LOBBYN_TOKEN_EXPIRATION '.expiration = $expiration' "tmp/$LOBBYN_TOKEN" > "tmp/$LOBBYN_TOKEN.tmp" && mv "tmp/$LOBBYN_TOKEN.tmp" "tmp/$LOBBYN_TOKEN"
 }
 
 LOBBYN_TOKEN_close(){ #token

@@ -24,6 +24,7 @@ fi
 target_icon_id=$(echo $LOBBYN_TOKEN_DATA | jq -r '.iconId')
 puuid=$(echo  $LOBBYN_TOKEN_DATA | jq -r '.puuid')
 region=$(echo  $LOBBYN_TOKEN_DATA | jq -r '.region')
+display_name=$(echo  $LOBBYN_TOKEN_DATA | jq -r '.displayName')
 
 LOBBYN_CLEAR_ERROR
 LOBBYN_RIOT_getUserByPuuid $puuid $region
@@ -41,7 +42,7 @@ if [ "$icon_id" -eq "$target_icon_id" ]; then
     LOBBYN_TOKEN_close $LOBBYN_TOKEN
 
     LOBBYN_CLEAR_ERROR
-    LOBBYN_USER_createUser $userId $password
+    LOBBYN_USER_createUser $userId $password "$display_name"
     LOBBYN_USER_linkPuuid $userId $puuid $region
 
     response 201 "$response_message"

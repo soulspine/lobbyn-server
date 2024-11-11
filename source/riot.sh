@@ -5,14 +5,6 @@ LOBBYN_RIOT_getUserByName(){ #username, tagline, region - can throw error
     local tagline=$(echo "$2" | tr -d '\n' | jq -sRr @uri)
     local region=$(echo "$3" | tr -d '\n' | jq -sRr @uri)
 
-    #can't check for empty values here because they default to null and someone can have a username "null" or "undefined"
-    #if [ -z "$username" ] || [ -z "$tagline" ] || [ -z "$region" ]; then
-    #    LOBBYN_RIOT_USER=""
-    #    LOBBYN_ERROR_CODE="400"
-    #    LOBBYN_ERROR_MESSAGE="Invalid username, tagline or region"
-    #    return 400
-    #fi
-
     local user_request=$(curl -s -X GET "https://$RIOT_CONTINENT.api.riotgames.com/riot/account/v1/accounts/by-riot-id/$username/$tagline" -H "X-Riot-Token: $RIOT_API_KEY")
     local status_code=$(echo $user_request | jq -r '.status.status_code')
 

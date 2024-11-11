@@ -27,6 +27,6 @@ if [ ! "$received_hash" = "$hash" ]; then
     error 400 "Login attempt failed."
 fi
 
-LOBBYN_TOKEN_generate "$(jo -p userId="$userId")" $LOGIN_SESSION_TIMEOUT "access"
+LOBBYN_TOKEN_generate "$(jo -p userId="$userId" start="$(date +%s)")" $ACCESS_SESSION_TIMEOUT "access"
 
 response 200 "$(jo token="$LOBBYN_TOKEN")"

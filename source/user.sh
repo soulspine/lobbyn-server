@@ -1,13 +1,35 @@
 #this should never be run standalone, it should only be accessed by sourcing it from request.sh
+import clear
 
 LOBBYN_USER_createUser(){ #userId, password
     local userId="$1"
     local password="$2"
+    local display_name="$3"
 
     mkdir -p database/users/$userId
 
     echo -n "$password" | argon2 "$userId" -e -l $ARGON2_LENGTH -t $ARGON2_ITERATIONS -k $ARGON2_MEMORY -p $ARGON2_PARALLELISM > database/users/$userId/password
     touch "database/users/$userId/riot_accounts"
+    echo -e "$display_name" > "database/users/$userId/display_name"
+}
+
+LOBBYN_USER_deleteUser(){ #userId - can throw error
+    local userId="$1"
+
+    if [ ! -d "database/user/$userId" ]; then
+        LOBBYN_ERROR_CODE=404
+        LOBBYN_ERROR_MESSAGE="User not found."
+        return $LOBBYN_ERROR_CODE
+    fi 
+
+    local riot_accounts
+    mapfile -t riot_accounts < "database/users/$userId/riot_accounts"
+
+    for puuid in "${riot_accounts[@]}"; do
+        rm -f "database/riot_accounts/$puuid"
+    done
+
+    rm -rf "database/users/$userId"
 }
 
 LOBBYN_USER_linkPuuid(){ #userId, puuid, region - can throw error
@@ -107,23 +129,59 @@ LOBBYN_USER_checkIfPuuidInVerificationProcess(){ #puuid - can throw error
 #only use this function from /login/
 LOBBYN_USER_checkIfUserIdInLoginProcess(){ #userId - can throw error
     local userId="$1"
-    local token
     for token in tmp/*; do
         if [ ! -f $token ]; then
             continue
         fi
 
-        local expiration=$(cat $token | jq -r '.expiration')
+        local type="$(cat $token | jq -r '.type')"
+
+        if [ ! "$type" = "loginRequest" ]; then
+            continue
+        fi
+
+        local expiration="$(cat $token | jq -r '.expiration')"
 
         if [ "$expiration" -lt $(date +%s) ]; then
             continue
         fi
 
-        local userId_to_verify=$(cat $token | jq -r '.data.userId')
+        local userId_to_verify="$(cat $token | jq -r '.data.userId')"
 
         if [ "$userId_to_verify" = "$userId" ]; then
             LOBBYN_ERROR_CODE=409
             LOBBYN_ERROR_MESSAGE="User login request already exists. Respond to existing one or wait for it to expire."
+            return $LOBBYN_ERROR_CODE
+        fi
+    done
+}
+
+#only use this function from /login/
+LOBBYN_USER_checkIfUserLoggedIn(){ #userId - can throw error
+    local userId="$1"
+
+    for token in tmp/*; do
+        if [ ! -f $token ]; then
+            continue
+        fi
+
+        local type="$(cat $token | jq -r '.type')"
+
+        if [ ! "$type" = "access" ]; then
+            continue
+        fi
+
+        local expiration="$(cat $token | jq -r '.expiration')"
+
+        if [ "$expiration" -lt $(date +%s) ]; then
+            continue
+        fi
+
+        local userId_to_verify="$(cat $token | jq -r '.data.userId')"
+
+        if [ "$userId_to_verify" = "$userId" ]; then
+            LOBBYN_ERROR_CODE=409
+            LOBBYN_ERROR_MESSAGE="User already logged in."
             return $LOBBYN_ERROR_CODE
         fi
     done

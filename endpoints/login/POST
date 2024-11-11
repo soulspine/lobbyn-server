@@ -28,8 +28,16 @@ LOBBYN_CLEAR_ERROR
 LOBBYN_USER_checkIfUserIdInLoginProcess $userId
 
 if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
-return $LOBBYN_ERROR_CODE
+    error $LOBBYN_ERROR_CODE "$LOBBYN_ERROR_MESSAGE"
 fi
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_USER_checkIfUserLoggedIn $userId
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error $LOBBYN_ERROR_CODE "$LOBBYN_ERROR_MESSAGE"
+fi
+
 salt=$(cat /dev/urandom | tr -dc 'A-Za-z0-9' | head -c $TOKEN_LENGTH)
 default_hash=$(cat database/users/$userId/password)
 

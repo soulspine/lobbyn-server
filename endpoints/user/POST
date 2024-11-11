@@ -1,9 +1,13 @@
 #this should never be run standalone, it should only be accessed by sourcing it from request.sh
-import riot user clear
+import riot user clear token
 
-username=$(echo "$body" | jq -r '.username')
-tagline=$(echo "$body" | jq -r '.tagline')
-region=$(echo "$body" | jq -r '.region')
+username=$(echo "$body" | jq -r '.username // empty')
+tagline=$(echo "$body" | jq -r '.tagline // empty')
+region=$(echo "$body" | jq -r '.region // empty')
+
+if [ -z "$username" ] || [ -z "$tagline" ] || [ -z "$region" ]; then
+    error 400 "Missing username, tagline or region."
+fi
 
 LOBBYN_CLEAR_ERROR
 LOBBYN_RIOT_getUserByName "$username" "$tagline" "$region"
@@ -36,6 +40,6 @@ while [ "$target_icon" = "$current_user_icon" ]; do
 done
 
 LOBBYN_CLEAR_ERROR
-LOBBYN_TOKEN_generate "$(jo -p iconId=$target_icon puuid=$puuid region=$region)" $USER_CREATION_TIMEOUT "userRegistration"
+LOBBYN_TOKEN_generate "$(jo -p iconId=$target_icon puuid=$puuid region=$region displayName="$username")" $USER_CREATION_TIMEOUT "userRegistration"
 
 response 202 "$(jo message="User creation request created." iconId=$target_icon token=$LOBBYN_TOKEN validUntil=$LOBBYN_TOKEN_EXPIRATION)"
