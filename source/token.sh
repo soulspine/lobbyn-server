@@ -54,3 +54,22 @@ LOBBYN_TOKEN_extend(){ #token, expiration
 LOBBYN_TOKEN_close(){ #token
     rm -f "tmp/$1"
 }
+
+LOBBYN_TOKEN_checkAccessToken(){ #token - can throw error
+    if [ -z $1 ]; then
+        LOBBYN_ERROR_CODE=401
+        LOBBYN_ERROR_MESSAGE="No access token provided."
+        return $LOBBYN_ERROR_CODE
+    fi
+
+    LOBBYN_CLEAR_ERROR
+    LOBBYN_TOKEN_get "$1"
+
+    if [ ! -z $LOBBYN_ERROR_CODE ] || [ ! "$LOBBYN_TOKEN_TYPE" = "access" ]; then
+        LOBBYN_ERROR_CODE=401
+        LOBBYN_ERROR_MESSAGE="Invalid access token."
+        return $LOBBTN_ERROR_CODE
+    fi
+
+    LOBBYN_ACCESS_USER=$(cat "tmp/$1" | jq -r '.data.userId')
+}

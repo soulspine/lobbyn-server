@@ -1,0 +1,19 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_TOKEN_checkAccessToken "$access_token"
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
+
+new_name="$(echo "$body" | jq -r '.name')"
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_USER_changeDisplayName "$LOBBYN_ACCESS_USER" "$new_name"
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
+
+response 200 "$(jo message="Display name changed.")"

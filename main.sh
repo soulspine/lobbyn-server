@@ -32,6 +32,8 @@ defaults=(
     "LOGIN_REQUEST_TIMEOUT=10"
     "ACCESS_SESSION_TIMEOUT=900"
     "CLEANUP_INTERVAL=60"
+    "DISPLAY_NAME_MIN_LENGTH=5"
+    "DISPLAY_NAME_LENGTH=16"
 )
 
 if [ -f config.ini ]; then
