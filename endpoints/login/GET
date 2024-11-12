@@ -1,0 +1,3 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+
+response 200 "$(jo iterations=$ARGON2_ITERATIONS memory=$ARGON2_MEMORY parallelism=$ARGON2_PARALLELISM length=$ARGON2_LENGTH)"
