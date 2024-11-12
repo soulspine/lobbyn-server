@@ -1,0 +1,39 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_TOKEN_checkAccessToken "$access_token"
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
+
+settings=$(cat database/users/$LOBBYN_ACCESS_USER/settings.json)
+
+for key in $(echo "$body" | jq -r 'keys[]'); do
+    value=$(echo "$settings" | jq -r ".$key // empty")
+    if [ -z "$value" ]; then
+        continue
+    fi
+
+    new_value=$(echo "$body" | jq -r ".$key")
+    if [ -z "$new_value" ]; then
+        continue
+    fi
+
+    # check name length
+    if [ "$key" = "displayName" ]; then
+        if [ ${#new_value} -gt $DISPLAY_NAME_MAX_LENGTH ] || [ ${#new_value} -lt $DISPLAY_NAME_MIN_LENGTH ]; then
+            continue
+        fi
+    fi
+
+    settings=$(echo "$settings" | jq ".$key=\"$new_value\"")
+done
+
+echo "$settings" > database/users/$LOBBYN_ACCESS_USER/settings.json
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
+
+response 200 "$(jo message="All correctly passed keys have been updated.")"

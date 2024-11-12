@@ -16,11 +16,11 @@
 ### POST
 - `/user/` - initial request to create a user, returns a token, requires a body with `username`, `tagline` and `region`
 - `/user/verify` - request to create a user, returns `userId`, requires a body with `token` and `password`
-- `/login/` - initial request to login, returns a token, requires a body with `userId` or `puuid`
-- `/login/verify` - request to login, returns a token, requires a body with `token` and `hash`
+- `/login/` - initial request to log in, returns a `token` and `salt`, requires a body with `userId` or `puuid`
+- `/login/verify` - request to log in, returns an access `token`, requires a body with initial `token` and `hash`
 
-### PUT
-- `/user/display-name` - request to change the display name, requires a body with `name` and a valid `LOBBYN-Token` header
+### PATH
+- `/user/setting` - request to change user's settings, requires a valid `LOBBYN-Token` header and a body values to change, only valid keys are accepted, rest are ignored
 
 # User creation
 - Send a POST request to `/user/` with a body containing `username`, `tagline` and `region`

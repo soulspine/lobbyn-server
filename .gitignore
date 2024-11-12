@@ -4,3 +4,4 @@ SSL/
 database/
 tmp/
 test.sh
+faketoken

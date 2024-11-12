@@ -10,7 +10,7 @@ LOBBYN_USER_createUser(){ #userId, password
 
     echo -n "$password" | argon2 "$userId" -e -l $ARGON2_LENGTH -t $ARGON2_ITERATIONS -k $ARGON2_MEMORY -p $ARGON2_PARALLELISM > database/users/$userId/password
     touch "database/users/$userId/riot_accounts"
-    echo -e "$display_name" > "database/users/$userId/display_name"
+    jo displayName="$display_name" > "database/users/$userId/settings.json"
 }
 
 LOBBYN_USER_deleteUser(){ #userId - can throw error
@@ -30,25 +30,6 @@ LOBBYN_USER_deleteUser(){ #userId - can throw error
     done
 
     rm -rf "database/users/$userId"
-}
-
-LOBBYN_USER_changeDisplayName(){ #userId, display_name - can throw error
-    local userId="$1"
-    local display_name="$2"
-
-    if [ ! -d "database/users/$userId" ]; then
-        LOBBYN_ERROR_CODE=404
-        LOBBYN_ERROR_MESSAGE="User not found."
-        return $LOBBYN_ERROR_CODE
-    fi
-
-    if [ ${#display_name} -gt $DISPLAY_NAME_MAX_LENGTH ] || [ ${#display_name} -lt $DISPLAY_NAME_MIN_LENGTH ]; then
-        LOBBYN_ERROR_CODE=400
-        LOBBYN_ERROR_MESSAGE="Display name must be between $DISPLAY_NAME_MIN_LENGTH and $DISPLAY_NAME_MAX_LENGTH characters."
-        return $LOBBYN_ERROR_CODE
-    fi
-
-    echo -e "$display_name" > "database/users/$userId/display_name"
 }
 
 LOBBYN_USER_linkPuuid(){ #userId, puuid, region - can throw error
