@@ -12,6 +12,7 @@
 ### GET
 - `/` - returns a simple text message with credits
 - `/login/` - returns info about argon2 hash parameters
+- `/user/settings/` - returns user's settings, requires a valid `LOBBYN-Token` header
 
 ### POST
 - `/user/` - initial request to create a user, returns a token, requires a body with `username`, `tagline` and `region`
@@ -19,8 +20,8 @@
 - `/login/` - initial request to log in, returns a `token` and `salt`, requires a body with `userId` or `puuid`
 - `/login/verify` - request to log in, returns an access `token`, requires a body with initial `token` and `hash`
 
-### PATH
-- `/user/setting` - request to change user's settings, requires a valid `LOBBYN-Token` header and a body values to change, only valid keys are accepted, rest are ignored
+### PATCH
+- `/user/setting` - request to change user's settings, requires a valid `LOBBYN-Token` header and a json object body containing values to change, only valid keys are accepted, rest are ignored
 
 # User creation
 - Send a POST request to `/user/` with a body containing `username`, `tagline` and `region`
