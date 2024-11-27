@@ -36,13 +36,12 @@ fi
 icon_id=$(echo "$LOBBYN_RIOT_USER" | jq -r '.profileIconId')
 
 if [ "$icon_id" -eq "$target_icon_id" ]; then
-    userId=$(uuidgen)
     response_message="$(jo message="User successfully created." userId=$userId)"
 
-    LOBBYN_TOKEN_close $LOBBYN_TOKEN
+    LOBBYN_TOKEN_close "$LOBBYN_TOKEN"
 
     LOBBYN_CLEAR_ERROR
-    LOBBYN_USER_createUser $userId $password "$display_name"
+    LOBBYN_USER_createUser "$password" "$display_name"
     LOBBYN_USER_linkPuuid $userId $puuid $region
 
     response 201 "$response_message"

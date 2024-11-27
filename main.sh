@@ -34,6 +34,8 @@ defaults=(
     "CLEANUP_INTERVAL=60"
     "DISPLAY_NAME_MIN_LENGTH=5"
     "DISPLAY_NAME_LENGTH=16"
+    "TOURNAMENT_NAME_MIN_LENGTH=5"
+    "TOURNAMENT_NAME_MAX_LENGTH=16"
 )
 
 if [ -f config.ini ]; then

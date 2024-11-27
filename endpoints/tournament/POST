@@ -1,0 +1,24 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_TOKEN_checkAccessToken "$access_token"
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
+
+name="$(echo "$body" | jq -r '.name // empty')"
+region="$(echo "$body" | jq -r '.region // empty')"
+team_size="$(echo "$body" | jq -r '.teamSize // empty')"
+gamemode="$(echo "$body" | jq -r '.gamemode // empty')"
+format="$(echo "$body" | jq -r '.format // empty')"
+visibility="$(echo "$body" | jq -r '.visibility // empty')"
+join_policy="$(echo "$body" | jq -r '.joinPolicy // empty')"
+
+LOBBYN_TOURNAMENT_createEmpty "$LOBBYN_ACCESS_USER" "$name" "$region" "$team_size" "$gamemode" "$format" "$visibility" "$join_policy"
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
+
+response 201 "$(jo message="Tournament successfully created." tournamentId=$LOBBYN_TOURNAMENT_ID)"

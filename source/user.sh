@@ -2,15 +2,15 @@
 import clear
 
 LOBBYN_USER_createUser(){ #userId, password
-    local userId="$1"
-    local password="$2"
-    local display_name="$3"
+    LOBBYN_USER_ID="U-$(uuidgen)"
+    local password="$1"
+    local display_name="$2"
 
     mkdir -p database/users/$userId
 
-    echo -n "$password" | argon2 "$userId" -e -l $ARGON2_LENGTH -t $ARGON2_ITERATIONS -k $ARGON2_MEMORY -p $ARGON2_PARALLELISM > database/users/$userId/password
-    touch "database/users/$userId/riot_accounts"
-    jo displayName="$display_name" > "database/users/$userId/settings.json"
+    echo -n "$password" | argon2 "$LOBBYN_USER_ID" -e -l $ARGON2_LENGTH -t $ARGON2_ITERATIONS -k $ARGON2_MEMORY -p $ARGON2_PARALLELISM > database/users/$LOBBYN_USER_ID/password
+    touch "database/users/$LOBBYN_USER_ID/riot_accounts"
+    jo displayName="$display_name" > "database/users/$LOBBYN_USER_ID/settings.json"
 }
 
 LOBBYN_USER_deleteUser(){ #userId - can throw error
