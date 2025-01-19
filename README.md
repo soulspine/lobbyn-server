@@ -19,6 +19,7 @@
 - `/user/verify` - request to create a user, returns `userId`, requires a body with `token` and `password`
 - `/login/` - initial request to log in, returns a `token` and `salt`, requires a body with `userId` or `puuid`
 - `/login/verify` - request to log in, returns an access `token`, requires a body with initial `token` and `hash`
+- `/tournament/` - request to create a tournament, requires a valid `LOBBYN-Token` header and a body with `name`, `region`, `type`, `date`, `description`,
 
 ### PATCH
 - `/user/setting` - request to change user's settings, requires a valid `LOBBYN-Token` header and a json object body containing values to change, only valid keys are accepted, rest are ignored

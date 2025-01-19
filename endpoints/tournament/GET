@@ -1,0 +1,12 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+
+tournamentId="$(echo "$body" | jq -r '.tournamentId // empty')"
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_TOURNAMENT_getById "$tournamentId"
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
+
+response 200 "$(jo persistent="$LOBBYN_TOURNAMENT_PERSISTENT_INFO" modifiable="$LOBBYN_TOURNAMENT_MODIFIABLE_INFO")"

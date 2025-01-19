@@ -1,7 +1,7 @@
 #this should never be run standalone, it should only be accessed by sourcing it from request.sh
 #this is also special case scenario, all endpoints past /info/ should be redirected here
 if [ -z "$body" ]; then
-    response 200 "$(jo -p ip=$ip method=$method endpoint=$endpoint)"
+    response 200 "$(jo -p ip="$ip" method="$method" endpoint="$endpoint")"
 else
-    response 200 "$(jo -p ip=$ip method=$method endpoint=$endpoint body=$body)"
+    response 200 "$(jo -p ip="$ip" method="$method" endpoint="$endpoint" body="$body")"
 fi

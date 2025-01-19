@@ -202,7 +202,7 @@ response(){
     exit "$code"
 }
 
-import clear riot token user
+import clear riot token user tournament
 
 source config.ini
 

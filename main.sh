@@ -34,6 +34,8 @@ defaults=(
     "CLEANUP_INTERVAL=60"
     "DISPLAY_NAME_MIN_LENGTH=5"
     "DISPLAY_NAME_LENGTH=16"
+    "TOURNAMENT_NAME_MIN_LENGTH=5"
+    "TOURNAMENT_NAME_MAX_LENGTH=16"
 )
 
 if [ -f config.ini ]; then
@@ -76,4 +78,5 @@ echo "protocol = proxy" >> SSL/stunnel.conf
 stunnel SSL/stunnel.conf
 
 cleanup_tmp_files &
+pkill tcpserver
 tcpserver -v -R -H 0 $HTTP_PORT ./request.sh

@@ -7,7 +7,12 @@
 #tokens go into tmp
 LOBBYN_TOKEN_generate(){ #data, expiration, type
     LOBBYN_TOKEN_DATA="$1"
-    LOBBYN_TOKEN=$(openssl rand -base64 $(( ($TOKEN_LENGTH * 3 + 3) / 4 )) | tr -dc 'A-Za-z0-9' | head -c $TOKEN_LENGTH)
+    while :; do
+      LOBBYN_TOKEN=$(openssl rand -base64 $(( ($TOKEN_LENGTH * 3 + 3) / 4 )) | tr -dc 'A-Za-z0-9' | head -c $TOKEN_LENGTH)
+      if [ "${#LOBBYN_TOKEN}" -eq "$TOKEN_LENGTH" ]; then
+        break
+      fi
+    done
     LOBBYN_TOKEN_EXPIRATION=$(($(date +%s) + $2))
     LOBBYN_TOKEN_TYPE="$3"
 

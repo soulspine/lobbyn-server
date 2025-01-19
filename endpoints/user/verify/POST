@@ -4,9 +4,7 @@ import clear riot token user
 token=$(echo "$body" | jq -r '.token')
 password=$(echo "$body" | jq -r '.password')
 
-if [ -z $token ] || [ ${#token} -ne $TOKEN_LENGTH ]; then
-    error 400 "Invalid token."
-elif [ -z $password ] || [ ${#password} -lt 6 ]; then
+if [ -z $password ] || [ ${#password} -lt 6 ]; then
     error 400 "Password must be at least 6 characters long."
 fi
 
@@ -36,14 +34,12 @@ fi
 icon_id=$(echo "$LOBBYN_RIOT_USER" | jq -r '.profileIconId')
 
 if [ "$icon_id" -eq "$target_icon_id" ]; then
-    userId=$(uuidgen)
-    response_message="$(jo message="User successfully created." userId=$userId)"
-
-    LOBBYN_TOKEN_close $LOBBYN_TOKEN
-
+    LOBBYN_TOKEN_close "$LOBBYN_TOKEN"
     LOBBYN_CLEAR_ERROR
-    LOBBYN_USER_createUser $userId $password "$display_name"
-    LOBBYN_USER_linkPuuid $userId $puuid $region
+    LOBBYN_USER_createUser "$password" "$display_name"
+    LOBBYN_USER_linkPuuid $LOBBYN_USER_ID $puuid $region
+
+    response_message="$(jo message="User successfully created." userId="$LOBBYN_USER_ID")"
 
     response 201 "$response_message"
 else
