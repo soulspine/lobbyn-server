@@ -284,3 +284,22 @@ LOBBYN_TOURNAMENT_getAllUsersEligibleToView(){ # can throw error
         LOBBYN_TOURNAMENT_VIEW_ELIGIBLE_USERS+=("$participant")
     done
 }
+
+LOBBYN_TOURNAMENT_getAllUsersEligibleToSettings(){
+    local tournamentId="$1"
+
+    if [ ! -d "database/tournaments/$tournamentId" ]; then
+        LOBBYN_ERROR_CODE="404"
+        LOBBYN_ERROR_MESSAGE="Tournament not found."
+        return $LOBBYN_ERROR_CODE
+    fi
+
+    local persistentSettings=$(cat "database/tournaments/$tournamentId/persistentSettings.json")
+    
+    LOBBYN_TOURNAMENT_SETTINGS_ELIGIBLE_USERS=()
+    LOBBYN_TOURNAMENT_SETTINGS_ELIGIBLE_USERS+=($(echo "$persistentSettings" | jq -r '.organizer')) #organizer
+
+    jq -c '.moderators[]' <<< "$persistentSettings" | while read moderator; do #moderators
+        LOBBYN_TOURNAMENT_SETTINGS_ELIGIBLE_USERS+=("$moderator")
+    done
+}

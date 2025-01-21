@@ -1,0 +1,26 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+
+tournamentId="$(echo "$body" | jq -r '.tournamentId // empty')"
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_TOKEN_checkAccessToken "$access_token"
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_TOURNAMENT_getAllUsersEligibleToSettings "$tournamentId"
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
+
+if [[ ! "${LOBBYN_TOURNAMENT_SETTINGS_ELIGIBLE_USERS[@]}" =~ "$LOBBYN_ACCESS_USER" ]]; then
+    error 403 "Not eligible to access this tournament's settings."
+fi
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_TOURNAMENT_getById "$tournamentId"
+
+response 200 "$(jo persistent="$LOBBYN_TOURNAMENT_PERSISTENT_INFO" modifiable="$LOBBYN_TOURNAMENT_MODIFIABLE_INFO")"
