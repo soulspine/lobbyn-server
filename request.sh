@@ -10,6 +10,7 @@ import(){
         var_name="LOBBYN_SOURCE_${script^^}"
         if [ -z "${!var_name}" ]; then
             if [ -f "source/$script.sh" ]; then
+                dos2unix "source/$script.sh"
                 source "source/$script.sh"
                 declare -g "$var_name=true"
             else

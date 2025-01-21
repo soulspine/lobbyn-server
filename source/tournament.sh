@@ -171,15 +171,16 @@ LOBBYN_TOURNAMENT_createEmpty(){ #can throw error
     if [ ! -z "$bad_fields" ]; then
         bad_fields="${bad_fields::-1}"
         LOBBYN_ERROR_CODE="400"
-        LOBBYN_ERROR_MESSAGE="Invalid fields: $bad_fields"
+        LOBBYN_ERROR_MESSAGE="Invalid fields:$bad_fields"
         return $LOBBYN_ERROR_CODE
     fi
 
-    mkdir -p database/tournaments/$LOBBYN_TOURNAMENT_ID/participants
+    mkdir -p database/tournaments/$LOBBYN_TOURNAMENT_ID
 
     jo -p \
         organizer="$organizer_id" \
         moderators="[]" \
+        participants="[]" \
         region="$region" \
         status="pending" \
         participantCount=0 \
@@ -195,7 +196,6 @@ LOBBYN_TOURNAMENT_createEmpty(){ #can throw error
         visibility="$visibility" \
         joinPolicy="$join_policy" \
     > database/tournaments/$LOBBYN_TOURNAMENT_ID/settings.json
-
 }
 
 LOBBYN_TOURNAMENT_getById(){ #can throw error
@@ -213,10 +213,13 @@ LOBBYN_TOURNAMENT_getById(){ #can throw error
     local visibility=$(echo "$settings" | jq -r '.visibility')
 
     if [ "$visibility" = "private" ]; then
-        LOBBYN_ERROR_CODE="403"
-        #TODO CHECK IF USER IS IN THE TOURNAMENT
-        LOBBYN_ERROR_MESSAGE="Tournament is private."
-        return $LOBBYN_ERROR_CODE
+        LOBBYN_TOURNAMENT_getAllUsersEligibleToView "$tournamentId"
+        #response 200 "$LOBBYN_ACCESS_USER"
+        if [[ ! "${LOBBYN_TOURNAMENT_VIEW_ELIGIBLE_USERS[@]}" =~ "$LOBBYN_ACCESS_USER" ]]; then
+            LOBBYN_ERROR_CODE="403"
+            LOBBYN_ERROR_MESSAGE="You do not have access to this tournament."
+            return $LOBBYN_ERROR_CODE
+        fi
     fi
 
     LOBBYN_TOURNAMENT_ID="$tournamentId"
@@ -232,6 +235,7 @@ LOBBYN_TOURNAMENT_getById(){ #can throw error
     LOBBYN_TOURNAMENT_ORGANIZER_NAME="$LOBBYN_USER_NAME"
     LOBBYN_TOURNAMENT_REGION=$(echo "$persistentSettings" | jq -r '.region')
     LOBBYN_TOURNAMENT_MODERATORS=$(echo "$persistentSettings" | jq -r '.moderators')
+    LOBBYN_TOURNAMENT_PARTICIPANTS=$(echo "$persistentSettings" | jq -r '.participants')
     LOBBYN_TOURNAMENT_STATUS=$(echo "$persistentSettings" | jq -r '.status')
     LOBBYN_TOURNAMENT_PARTICIPANT_COUNT=$(echo "$persistentSettings" | jq -r '.participantCount')
     LOBBYN_TOURNAMENT_TEAM_COUNT=$(echo "$persistentSettings" | jq -r '.teamCount')
@@ -241,6 +245,7 @@ LOBBYN_TOURNAMENT_getById(){ #can throw error
         organizerId="$LOBBYN_TOURNAMENT_ORGANIZER_ID" \
         region="$LOBBYN_TOURNAMENT_REGION" \
         moderators="$LOBBYN_TOURNAMENT_MODERATORS" \
+        participants="$LOBBYN_TOURNAMENT_PARTICIPANTS" \
         status="$LOBBYN_TOURNAMENT_STATUS" \
         participantCount=$LOBBYN_TOURNAMENT_PARTICIPANT_COUNT \
         teamCount=$LOBBYN_TOURNAMENT_TEAM_COUNT \
@@ -255,4 +260,27 @@ LOBBYN_TOURNAMENT_getById(){ #can throw error
         visibility="$LOBBYN_TOURNAMENT_VISIBILITY" \
         joinPolicy="$LOBBYN_TOURNAMENT_JOIN_POLICY" \
     )
+}
+
+LOBBYN_TOURNAMENT_getAllUsersEligibleToView(){ # can throw error
+    local tournamentId="$1"
+
+    if [ ! -d "database/tournaments/$tournamentId" ]; then
+        LOBBYN_ERROR_CODE="404"
+        LOBBYN_ERROR_MESSAGE="Tournament not found."
+        return $LOBBYN_ERROR_CODE
+    fi
+
+    local persistentSettings=$(cat "database/tournaments/$tournamentId/persistentSettings.json")
+    
+    LOBBYN_TOURNAMENT_VIEW_ELIGIBLE_USERS=()
+    LOBBYN_TOURNAMENT_VIEW_ELIGIBLE_USERS+=($(echo "$persistentSettings" | jq -r '.organizer')) #organizer
+
+    jq -c '.moderators[]' <<< "$persistentSettings" | while read moderator; do #moderators
+        LOBBYN_TOURNAMENT_VIEW_ELIGIBLE_USERS+=("$moderator")
+    done
+
+    jq -c '.participants[]' <<< "$persistentSettings" | while read participant; do #participants
+        LOBBYN_TOURNAMENT_VIEW_ELIGIBLE_USERS+=("$participant")
+    done
 }

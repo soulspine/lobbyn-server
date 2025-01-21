@@ -3,6 +3,13 @@
 tournamentId="$(echo "$body" | jq -r '.tournamentId // empty')"
 
 LOBBYN_CLEAR_ERROR
+LOBBYN_TOKEN_checkAccessToken "$access_token"
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error "$LOBBYN_ERROR_CODE" "$LOBBYN_ERROR_MESSAGE"
+fi
+
+LOBBYN_CLEAR_ERROR
 LOBBYN_TOURNAMENT_getById "$tournamentId"
 
 if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
