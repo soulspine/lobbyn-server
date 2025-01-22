@@ -98,7 +98,7 @@ LOBBYN_USER_getRiotAccountsPuuidById(){ #userId - can throw error
         return $LOBBYN_ERROR_CODE
     fi
 
-    mapfile -t LOBBYN_USER_RIOT_ACCOUNTS_PUUIDS < "database/users/$userId/riot_accounts"
+    LOBBYN_USER_RIOT_ACCOUNTS_PUUIDS=$(jq -R -s 'split("\n")[:-1]' "database/users/$userId/riot_accounts")
 }
 
 #only use this function from /user/

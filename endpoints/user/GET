@@ -1,0 +1,31 @@
+#this should never be run standalone, it should only be accessed by sourcing it from request.sh
+
+puuid=$(echo "$body" | jq -r '.puuid // empty')
+userId=$(echo "$body" | jq -r '.userId // empty')
+
+if [ -z "$puuid" ] && [ -z "$userId" ]; then
+    error 400 "Missing puuid or userId."
+fi
+
+if [ ! -z "$puuid" ] && [ ! -z "$userId" ]; then
+    error 400 "Both puuid and userId are provided."
+fi
+
+LOBBYN_CLEAR_ERROR
+if [ ! -z "$puuid" ]; then
+    LOBBYN_USER_getIdByPuuid "$puuid"
+    userId=$LOBBYN_USER_ID
+else
+    LOBBYN_USER_checkId "$userId"
+fi
+
+if [ ! -z "$LOBBYN_ERROR_CODE" ]; then
+    error $LOBBYN_ERROR_CODE "$LOBBYN_ERROR_MESSAGE"
+fi
+
+LOBBYN_CLEAR_ERROR
+LOBBYN_USER_getRiotAccountsPuuidById $userId
+
+LOBBYN_USER_getNameById $userId
+
+response 200 "$(jo userId="$userId" puuids="$LOBBYN_USER_RIOT_ACCOUNTS_PUUIDS" name="$LOBBYN_USER_NAME")"
