@@ -6,7 +6,8 @@ LOBBYN_USER_createUser(){ #userId, password
     local password="$1"
     local display_name="$2"
 
-    mkdir -p "database/users/$LOBBYN_USER_ID"
+    mkdir -p "database/users/$LOBBYN_USER_ID"/riot_accounts
+    mkdir -p "database/riot_accounts"
 
     echo -n "$password" | argon2 "$LOBBYN_USER_ID" -e -l $ARGON2_LENGTH -t $ARGON2_ITERATIONS -k $ARGON2_MEMORY -p $ARGON2_PARALLELISM > database/users/$LOBBYN_USER_ID/password
     touch "database/users/$LOBBYN_USER_ID/riot_accounts"
